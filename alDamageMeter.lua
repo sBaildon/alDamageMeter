@@ -754,8 +754,11 @@ local OnEvent = function(self, event, ...)
 			CheckRoster()
 		end
 	elseif event == "VARIABLES_LOADED" then
-		MainFrame.title = CreateFS(MainFrame)
-		MainFrame.title:SetPoint("BOTTOM", MainFrame, "TOP", 0, 1)
+		MainFrame.title = MainFrame:CreateFontString(nil, "OVERLAY")
+		MainFrame.title:SetFont(font, config.font_size, "THINOUTLINE")
+		MainFrame.title:SetPoint("BOTTOM", MainFrame, "TOP", 0, 6)
+		MainFrame:title:SetTextColor(1, .75, 0)
+		MainFrame.title:SetAlpha(0.4)
 		MainFrame.title:SetText(sMode)
 		UpdateWindow()
 	elseif event == "GROUP_ROSTER_UPDATE" or event == "PLAYER_ENTERING_WORLD" then
