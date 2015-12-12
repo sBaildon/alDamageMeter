@@ -190,50 +190,50 @@ local report = function(channel, cn)
 end
 
 StaticPopupDialogs[addon_name.."ReportDialog"] = {
-	text = "", 
-	button1 = ACCEPT, 
+	text = "",
+	button1 = ACCEPT,
 	button2 = CANCEL,
 	hasEditBox = 1,
-	timeout = 30, 
-	hideOnEscape = 1, 
+	timeout = 30,
+	hideOnEscape = 1,
 }
 
 local reportList = {
 	{
-		text = CHAT_LABEL, 
+		text = CHAT_LABEL,
 		func = function() report("Chat") end,
 	},
 	{
-		text = SAY, 
+		text = SAY,
 		func = function() report("SAY") end,
 	},
 	{
-		text = PARTY, 
+		text = PARTY,
 		func = function() report("PARTY") end,
 	},
 	{
-		text = RAID, 
+		text = RAID,
 		func = function() report("RAID") end,
 	},
 	{
-		text = OFFICER, 
+		text = OFFICER,
 		func = function() report("OFFICER") end,
 	},
 	{
-		text = GUILD, 
+		text = GUILD,
 		func = function() report("GUILD") end,
 	},
 	{
-		text = TARGET, 
-		func = function() 
+		text = TARGET,
+		func = function()
 			if UnitExists("target") and UnitIsPlayer("target") then
 				report("WHISPER", UnitName("target"))
 			end
 		end,
 	},
 	{
-		text = PLAYER.."..", 
-		func = function() 
+		text = PLAYER.."..",
+		func = function()
 			StaticPopupDialogs[addon_name.."ReportDialog"].OnAccept = function(self)
 				report("WHISPER", _G[self:GetName().."EditBox"]:GetText())
 			end
@@ -241,8 +241,8 @@ local reportList = {
 		end,
 	},
 	{
-		text = CHANNEL.."..", 
-		func = function() 
+		text = CHANNEL.."..",
+		func = function()
 			StaticPopupDialogs[addon_name.."ReportDialog"].OnAccept = function(self)
 				report("CHANNEL", _G[self:GetName().."EditBox"]:GetText())
 			end
@@ -329,11 +329,11 @@ local Add = function(uGUID, amount, mode, spell, target)
 	end
 	current[uGUID][mode].amount = current[uGUID][mode].amount + amount
 	total[uGUID][mode].amount = total[uGUID][mode].amount + amount
-	if spell then 
+	if spell then
 		current[uGUID][mode].spells[spell] = (current[uGUID][mode].spells[spell] or 0) + amount
 		total[uGUID][mode].spells[spell] = (total[uGUID][mode].spells[spell] or 0) + amount
 	end
-	if target then 
+	if target then
 		current[uGUID][mode].targets[target] = (current[uGUID][mode].targets[target] or 0) + amount
 		total[uGUID][mode].targets[target] = (total[uGUID][mode].targets[target] or 0) + amount
 	end
@@ -343,15 +343,22 @@ local SortMethod = function(a, b)
 	return display[b][sMode].amount < display[a][sMode].amount
 end
 
+local BarsToShow = function()
+	local height = MainFrame:GetHeight()
+	local bars_to_show = height / ((dmconf.barheight+dmconf.spacing) - dmconf.spacing)
+	return math.floor(bars_to_show)
+end
+
 local UpdateBars = function()
+	local necessarybars = BarsToShow()
 	table.sort(barguids, SortMethod)
 	local color, cur, max
 	for i = 1, #barguids do
 		cur = display[barguids[i+offset]]
 		max = display[barguids[1]]
-		if i > dmconf.maxbars or not cur then break end
+		if i > dmconf.maxbars or i > necessarybars or not cur then break end
 		if cur[sMode].amount == 0 then break end
-		if not bar[i] then 
+		if not bar[i] then
 			bar[i] = CreateBar()
 			bar[i]:SetPoint("TOP", 0, -(dmconf.barheight + dmconf.spacing) * (i-1))
 		end
@@ -379,7 +386,15 @@ local UpdateBars = function()
 end
 
 local UpdateWindow = function()
-	MainFrame:SetSize(dmconf.width, dmconf.maxbars*(dmconf.barheight+dmconf.spacing)-dmconf.spacing)
+	num_group_members = GetNumGroupMembers()
+	if (num_group_members >= dmconf.maxbars) then
+		MainFrame:SetSize(dmconf.width, dmconf.maxbars*(dmconf.barheight+dmconf.spacing)-dmconf.spacing)
+	elseif (num_group_members == 0) then
+		MainFrame:SetSize(dmconf.width, dmconf.barheight)
+	else
+		MainFrame:SetSize(dmconf.width, num_group_members*(dmconf.barheight+dmconf.spacing)-dmconf.spacing)
+	end
+
 	if not IsAddOnLoaded("alInterface") then
 		MainFrame.bg:SetBackdropColor(unpack(dmconf.backdrop_color))
 		MainFrame.bg:SetBackdropBorderColor(unpack(dmconf.border_color))
@@ -927,6 +942,7 @@ local OnEvent = function(self, event, ...)
 		UpdateWindow()
 	elseif event == "GROUP_ROSTER_UPDATE" or event == "PLAYER_ENTERING_WORLD" then
 		CheckRoster()
+		UpdateWindow()
 	elseif event == "PLAYER_REGEN_DISABLED" then
 		if not combatstarted then
 			StartCombat()
