@@ -3,7 +3,7 @@ local x, y = 12, -12
 local font = GameFontNormal:GetFont()
 local texture = "Interface\\Addons\\alDamageMeter\\media\\UI-StatusBar"
 
-local defaults = {
+local config = {
 	barheight = 14,
 	spacing = 1,
 	maxbars = 8,
@@ -22,7 +22,6 @@ local defaults = {
 	classcolorname = false,
 	mergeHealAbsorbs = false,
 }
-dmconf = defaults
 
 local addon_name, ns = ...
 local boss = LibStub("LibBossIDs-1.0")
@@ -39,7 +38,7 @@ local petFlags = COMBATLOG_OBJECT_TYPE_PET + COMBATLOG_OBJECT_TYPE_GUARDIAN
 local npcFlags = COMBATLOG_OBJECT_TYPE_NPC+COMBATLOG_OBJECT_CONTROL_NPC
 local backdrop = {
 	bgFile = [=[Interface\ChatFrame\ChatFrameBackground]=],
-	edgeFile = [=[Interface\ChatFrame\ChatFrameBackground]=], edgeSize = dmconf.border_size,
+	edgeFile = [=[Interface\ChatFrame\ChatFrameBackground]=], edgeSize = config.border_size,
 	insets = {top = 0, left = 0, bottom = 0, right = 0},
 }
 local displayMode = {
@@ -138,7 +137,7 @@ end
 
 local CreateFS = CreateFS or function(frame)
 	local fstring = frame:CreateFontString(nil, 'OVERLAY')
-	fstring:SetFont(font, dmconf.font_size, dmconf.font_style)
+	fstring:SetFont(font, config.font_size, config.font_style)
 	fstring:SetShadowColor(0, 0, 0, 1)
 	fstring:SetShadowOffset(0.5, -0.5)
 	return fstring
@@ -146,12 +145,12 @@ end
 
 local CreateBG = CreateBG or function(parent)
 	local bg = CreateFrame("Frame", nil, parent)
-	bg:SetPoint("TOPLEFT", -dmconf.border_size, dmconf.border_size)
-	bg:SetPoint("BOTTOMRIGHT", dmconf.border_size, -dmconf.border_size)
+	bg:SetPoint("TOPLEFT", -config.border_size, config.border_size)
+	bg:SetPoint("BOTTOMRIGHT", config.border_size, -config.border_size)
 	bg:SetFrameLevel(parent:GetFrameLevel() - 1)
 	bg:SetBackdrop(backdrop)
-	bg:SetBackdropColor(unpack(dmconf.backdrop_color))
-	bg:SetBackdropBorderColor(unpack(dmconf.border_color))
+	bg:SetBackdropColor(unpack(config.backdrop_color))
+	bg:SetBackdropBorderColor(unpack(config.border_color))
 	return bg
 end
 
@@ -175,7 +174,7 @@ local report = function(channel, cn)
 		SendChatMessage(message, channel, nil, cn)
 	end
 	for i, v in pairs(barguids) do
-		if i > dmconf.reportstrings or display[v][sMode].amount == 0 then return end
+		if i > config.reportstrings or display[v][sMode].amount == 0 then return end
 		if sMode == DAMAGE or sMode == SHOW_COMBAT_HEALING then
 			message = string.format("%2d. %s    %s (%.0f)", i, display[v].name, truncate(display[v][sMode].amount), perSecond(display[v]))
 		else
@@ -285,7 +284,7 @@ local CreateBar = function()
 	newbar:SetStatusBarTexture(texture)
 	newbar:SetMinMaxValues(0, 100)
 	newbar:SetWidth(MainFrame:GetWidth())
-	newbar:SetHeight(dmconf.barheight)
+	newbar:SetHeight(config.barheight)
 	newbar.left = CreateFS(newbar)
 	newbar.left:SetPoint("LEFT", 2, 0)
 	newbar.left:SetJustifyH("LEFT")
@@ -345,7 +344,7 @@ end
 
 local BarsToShow = function()
 	local height = MainFrame:GetHeight()
-	local bars_to_show = height / ((dmconf.barheight+dmconf.spacing) - dmconf.spacing)
+	local bars_to_show = height / ((config.barheight+config.spacing) - config.spacing)
 	return math.floor(bars_to_show)
 end
 
@@ -356,26 +355,26 @@ local UpdateBars = function()
 	for i = 1, #barguids do
 		cur = display[barguids[i+offset]]
 		max = display[barguids[1]]
-		if i > dmconf.maxbars or i > necessarybars or not cur then break end
+		if i > config.maxbars or i > necessarybars or not cur then break end
 		if cur[sMode].amount == 0 then break end
 		if not bar[i] then
 			bar[i] = CreateBar()
-			bar[i]:SetPoint("TOP", 0, -(dmconf.barheight + dmconf.spacing) * (i-1))
+			bar[i]:SetPoint("TOP", 0, -(config.barheight + config.spacing) * (i-1))
 		end
 		bar[i].id = i + offset
 		bar[i]:SetValue(100 * cur[sMode].amount / max[sMode].amount)
 		color = RAID_CLASS_COLORS[cur.class]
-		if dmconf.classcolorbar and color then
+		if config.classcolorbar and color then
 			bar[i]:SetStatusBarColor(color.r, color.g, color.b)
 		else
-			bar[i]:SetStatusBarColor(unpack(dmconf.barcolor))
+			bar[i]:SetStatusBarColor(unpack(config.barcolor))
 		end
 		if sMode == DAMAGE or sMode == SHOW_COMBAT_HEALING then
 			bar[i].right:SetFormattedText("%s (%s)", truncate(cur[sMode].amount), truncate(perSecond(cur)))
 		else
 			bar[i].right:SetFormattedText("%s", truncate(cur[sMode].amount))
 		end
-		if dmconf.classcolorname and color then
+		if config.classcolorname and color then
 			bar[i].left:SetFormattedText("%s%s|r", hex(color), cur.name)
 			bar[i].right:SetFormattedText("%s%s|r", hex(color), bar[i].right:GetText())
 		else
@@ -387,30 +386,30 @@ end
 
 local UpdateWindow = function()
 	num_group_members = GetNumGroupMembers()
-	if (num_group_members >= dmconf.maxbars) then
-		MainFrame:SetSize(dmconf.width, dmconf.maxbars*(dmconf.barheight+dmconf.spacing)-dmconf.spacing)
+	if (num_group_members >= config.maxbars) then
+		MainFrame:SetSize(config.width, config.maxbars*(config.barheight+config.spacing)-config.spacing)
 	elseif (num_group_members == 0) then
-		MainFrame:SetSize(dmconf.width, dmconf.barheight)
+		MainFrame:SetSize(config.width, config.barheight)
 	else
-		MainFrame:SetSize(dmconf.width, num_group_members*(dmconf.barheight+dmconf.spacing)-dmconf.spacing)
+		MainFrame:SetSize(config.width, num_group_members*(config.barheight+config.spacing)-config.spacing)
 	end
 
 	if not IsAddOnLoaded("alInterface") then
-		MainFrame.bg:SetBackdropColor(unpack(dmconf.backdrop_color))
-		MainFrame.bg:SetBackdropBorderColor(unpack(dmconf.border_color))
+		MainFrame.bg:SetBackdropColor(unpack(config.backdrop_color))
+		MainFrame.bg:SetBackdropBorderColor(unpack(config.border_color))
 	end
-	if dmconf.hidetitle then
+	if config.hidetitle then
 		MainFrame.title:Hide()
 	else
 		MainFrame.title:Show()
 	end
 	for i, v in pairs(bar) do
 		v:SetWidth(MainFrame:GetWidth())
-		v:SetHeight(dmconf.barheight)
-		v:SetPoint("TOP", 0, -(dmconf.barheight + dmconf.spacing) * (i-1))
+		v:SetHeight(config.barheight)
+		v:SetPoint("TOP", 0, -(config.barheight + config.spacing) * (i-1))
 		if not IsAddOnLoaded("alInterface") then
-			v.left:SetFont(font, dmconf.font_size, dmconf.font_style)
-			v.right:SetFont(font, dmconf.font_size, dmconf.font_style)
+			v.left:SetFont(font, config.font_size, config.font_style)
+			v.right:SetFont(font, config.font_size, config.font_style)
 		end
 	end
 	UpdateBars()
@@ -534,11 +533,11 @@ local CreateMenu = function(self, level)
 			info.text = "Visible bars"
 			info.func = function()
 				StaticPopupDialogs[addon_name.."ReportDialog"].OnAccept = function(self)
-					dmconf.maxbars = tonumber(_G[self:GetName().."EditBox"]:GetText())
+					config.maxbars = tonumber(_G[self:GetName().."EditBox"]:GetText())
 					UpdateWindow()
 				end
 				StaticPopupDialogs[addon_name.."ReportDialog"].OnShow = function(self)
-					_G[self:GetName().."EditBox"]:SetText(dmconf.maxbars)
+					_G[self:GetName().."EditBox"]:SetText(config.maxbars)
 				end
 				StaticPopup_Show(addon_name.."ReportDialog")
 			end
@@ -548,11 +547,11 @@ local CreateMenu = function(self, level)
 			info.text = "Bar width"
 			info.func = function()
 				StaticPopupDialogs[addon_name.."ReportDialog"].OnAccept = function(self)
-					dmconf.width = tonumber(_G[self:GetName().."EditBox"]:GetText())
+					config.width = tonumber(_G[self:GetName().."EditBox"]:GetText())
 					UpdateWindow()
 				end
 				StaticPopupDialogs[addon_name.."ReportDialog"].OnShow = function(self)
-					_G[self:GetName().."EditBox"]:SetText(dmconf.width)
+					_G[self:GetName().."EditBox"]:SetText(config.width)
 				end
 				StaticPopup_Show(addon_name.."ReportDialog")
 			end
@@ -562,11 +561,11 @@ local CreateMenu = function(self, level)
 			info.text = "Bar height"
 			info.func = function()
 				StaticPopupDialogs[addon_name.."ReportDialog"].OnAccept = function(self)
-					dmconf.barheight = tonumber(_G[self:GetName().."EditBox"]:GetText())
+					config.barheight = tonumber(_G[self:GetName().."EditBox"]:GetText())
 					UpdateWindow()
 				end
 				StaticPopupDialogs[addon_name.."ReportDialog"].OnShow = function(self)
-					_G[self:GetName().."EditBox"]:SetText(dmconf.barheight)
+					_G[self:GetName().."EditBox"]:SetText(config.barheight)
 				end
 				StaticPopup_Show(addon_name.."ReportDialog")
 			end
@@ -576,11 +575,11 @@ local CreateMenu = function(self, level)
 			info.text = "Spacing"
 			info.func = function()
 				StaticPopupDialogs[addon_name.."ReportDialog"].OnAccept = function(self)
-					dmconf.spacing = tonumber(_G[self:GetName().."EditBox"]:GetText())
+					config.spacing = tonumber(_G[self:GetName().."EditBox"]:GetText())
 					UpdateWindow()
 				end
 				StaticPopupDialogs[addon_name.."ReportDialog"].OnShow = function(self)
-					_G[self:GetName().."EditBox"]:SetText(dmconf.spacing)
+					_G[self:GetName().."EditBox"]:SetText(config.spacing)
 				end
 				StaticPopup_Show(addon_name.."ReportDialog")
 			end
@@ -590,11 +589,11 @@ local CreateMenu = function(self, level)
 			info.text = "Font size"
 			info.func = function()
 				StaticPopupDialogs[addon_name.."ReportDialog"].OnAccept = function(self)
-					dmconf.font_size = tonumber(_G[self:GetName().."EditBox"]:GetText())
+					config.font_size = tonumber(_G[self:GetName().."EditBox"]:GetText())
 					UpdateWindow()
 				end
 				StaticPopupDialogs[addon_name.."ReportDialog"].OnShow = function(self)
-					_G[self:GetName().."EditBox"]:SetText(dmconf.font_size)
+					_G[self:GetName().."EditBox"]:SetText(config.font_size)
 				end
 				StaticPopup_Show(addon_name.."ReportDialog")
 			end
@@ -603,57 +602,57 @@ local CreateMenu = function(self, level)
 			wipe(info)
 			info.text = "Hide title"
 			info.func = function()
-				dmconf.hidetitle = not dmconf.hidetitle
+				config.hidetitle = not config.hidetitle
 				UpdateWindow()
 			end
-			info.checked = dmconf.hidetitle
+			info.checked = config.hidetitle
 			UIDropDownMenu_AddButton(info, level)
 			wipe(info)
 			info.text = "Class color bar"
 			info.func = function()
-				dmconf.classcolorbar = not dmconf.classcolorbar
+				config.classcolorbar = not config.classcolorbar
 				UpdateWindow()
 			end
-			info.checked = dmconf.classcolorbar
+			info.checked = config.classcolorbar
 			UIDropDownMenu_AddButton(info, level)
 			wipe(info)
 			info.text = "Class color name"
 			info.func = function()
-				dmconf.classcolorname = not dmconf.classcolorname
+				config.classcolorname = not config.classcolorname
 				UpdateWindow()
 			end
-			info.checked = dmconf.classcolorname
+			info.checked = config.classcolorname
 			UIDropDownMenu_AddButton(info, level)
 			wipe(info)
 			info.text = "Save only boss fights"
 			info.func = function()
-				dmconf.onlyboss = not dmconf.onlyboss
+				config.onlyboss = not config.onlyboss
 				UpdateWindow()
 			end
-			info.checked = dmconf.onlyboss
+			info.checked = config.onlyboss
 			UIDropDownMenu_AddButton(info, level)
 			wipe(info)
 			info.text = "Merge heal and absorbs"
 			info.func = function()
-				dmconf.mergeHealAbsorbs = not dmconf.mergeHealAbsorbs
+				config.mergeHealAbsorbs = not config.mergeHealAbsorbs
 				UpdateWindow()
 			end
-			info.checked = dmconf.mergeHealAbsorbs
+			info.checked = config.mergeHealAbsorbs
 			UIDropDownMenu_AddButton(info, level)
 			wipe(info)
 			info.text = "Bar color"
 			info.hasColorSwatch = 1
 			info.func = UIDropDownMenuButton_OpenColorPicker
-			info.r = dmconf.barcolor[1]
-			info.g = dmconf.barcolor[2]
-			info.b = dmconf.barcolor[3]
+			info.r = config.barcolor[1]
+			info.g = config.barcolor[2]
+			info.b = config.barcolor[3]
 			info.swatchFunc = function()
-				dmconf.barcolor = {ColorPickerFrame:GetColorRGB()}
+				config.barcolor = {ColorPickerFrame:GetColorRGB()}
 				UpdateBars()
 			end
 			info.cancelFunc = function(restore)
 				local pv = ColorPickerFrame.previousValues
-				dmconf.barcolor = {pv.r, pv.g, pv.b}
+				config.barcolor = {pv.r, pv.g, pv.b}
 				UpdateBars()
 			end
 			info.notCheckable = 1
@@ -661,21 +660,21 @@ local CreateMenu = function(self, level)
 			UIDropDownMenu_AddButton(info, level)
 			info.text = "Backdrop color"
 			info.hasColorSwatch = 1
-			info.hasOpacity = (dmconf.backdrop_color[4] ~= nil)
+			info.hasOpacity = (config.backdrop_color[4] ~= nil)
 			info.func = UIDropDownMenuButton_OpenColorPicker
-			info.r = dmconf.backdrop_color[1]
-			info.g = dmconf.backdrop_color[2]
-			info.b = dmconf.backdrop_color[3]
-			info.opacity = dmconf.backdrop_color[4]
+			info.r = config.backdrop_color[1]
+			info.g = config.backdrop_color[2]
+			info.b = config.backdrop_color[3]
+			info.opacity = config.backdrop_color[4]
 			info.swatchFunc, info.opacityFunc, info.cancelFunc = function ()
-				dmconf.backdrop_color = {ColorPickerFrame:GetColorRGB()}
-				dmconf.backdrop_color[4] = OpacitySliderFrame:GetValue()
+				config.backdrop_color = {ColorPickerFrame:GetColorRGB()}
+				config.backdrop_color[4] = OpacitySliderFrame:GetValue()
 				UpdateWindow()
 			end
 			info.opacityFunc = info.swatchFunc
 			info.cancelFunc = function ()
 				local pv = ColorPickerFrame.previousValues
-				dmconf.backdrop_color = {pv.r, pv.g, pv.b, pv.opacity}
+				config.backdrop_color = {pv.r, pv.g, pv.b, pv.opacity}
 				UpdateWindow()
 			end
 			info.notCheckable = 1
@@ -685,19 +684,19 @@ local CreateMenu = function(self, level)
 			info.hasColorSwatch = 1
 			info.hasOpacity = 1
 			info.func = UIDropDownMenuButton_OpenColorPicker
-			info.r = dmconf.border_color[1]
-			info.g = dmconf.border_color[2]
-			info.b = dmconf.border_color[3]
-			info.opacity = (dmconf.border_color[4] ~= nil)
+			info.r = config.border_color[1]
+			info.g = config.border_color[2]
+			info.b = config.border_color[3]
+			info.opacity = (config.border_color[4] ~= nil)
 			info.swatchFunc = function()
-				dmconf.border_color = {ColorPickerFrame:GetColorRGB()}
-				dmconf.border_color[4] = OpacitySliderFrame:GetValue()
+				config.border_color = {ColorPickerFrame:GetColorRGB()}
+				config.border_color[4] = OpacitySliderFrame:GetValue()
 				UpdateWindow()
 			end
 			info.opacityFunc = info.swatchFunc
 			info.cancelFunc = function(restore)
 				local pv = ColorPickerFrame.previousValues
-				dmconf.border_color = {pv.r, pv.g, pv.b, pv.opacity}
+				config.border_color = {pv.r, pv.g, pv.b, pv.opacity}
 				UpdateWindow()
 			end
 			info.notCheckable = 1
@@ -712,7 +711,7 @@ local EndCombat = function()
 	combatstarted = false
 	local fname = bossname or mobname
 	if fname then
-		if #fights >= dmconf.maxfights then
+		if #fights >= config.maxfights then
 			tremove(fights, 1)
 		end
 		tinsert(fights, {name = fname, data = tcopy(current)})
@@ -797,7 +796,7 @@ local OnMouseWheel = function(self, direction)
 			offset = offset - 1
 		end
 	else
-		if num > dmconf.maxbars + offset then
+		if num > config.maxbars + offset then
 			offset = offset + 1
 		end
 	end
@@ -847,7 +846,7 @@ local OnEvent = function(self, event, ...)
 					Add(sourceGUID, amount, DAMAGE, spellName, destName)
 					if not bossname and boss.BossIDs[tonumber(destGUID:sub(9, 12), 16)] then
 						bossname = destName
-					elseif not mobname and not dmconf.onlyboss then
+					elseif not mobname and not config.onlyboss then
 						mobname = destName
 					end
 				end
@@ -887,7 +886,7 @@ local OnEvent = function(self, event, ...)
 					local old = shields[destGUID][spellName][sourceGUID]
 					shields[destGUID][spellName][sourceGUID] = amount
 					if old > amount then
-						Add(sourceGUID, old - amount, dmconf.mergeHealAbsorbs and SHOW_COMBAT_HEALING or ABSORB, spellName, destName)
+						Add(sourceGUID, old - amount, config.mergeHealAbsorbs and SHOW_COMBAT_HEALING or ABSORB, spellName, destName)
 					end
 				end
 			end
@@ -899,7 +898,7 @@ local OnEvent = function(self, event, ...)
 					local old = shields[destGUID][spellName][sourceGUID]
 					shields[destGUID][spellName][sourceGUID] = nil
 					if old > amount then
-						Add(sourceGUID, old, dmconf.mergeHealAbsorbs and SHOW_COMBAT_HEALING or ABSORB, spellName, destName)
+						Add(sourceGUID, old, config.mergeHealAbsorbs and SHOW_COMBAT_HEALING or ABSORB, spellName, destName)
 					end
 				end
 			end
@@ -911,7 +910,7 @@ local OnEvent = function(self, event, ...)
 		if name == addon_name then
 			self:UnregisterEvent(event)
 			MainFrame = CreateFrame("Frame", addon_name.."Frame", UIParent)
-			MainFrame:SetSize(dmconf.width, dmconf.maxbars*(dmconf.barheight+dmconf.spacing)-dmconf.spacing)
+			MainFrame:SetSize(config.width, config.maxbars*(config.barheight+config.spacing)-config.spacing)
 			MainFrame:SetPoint(anchor, x, y)
 			MainFrame.bg = CreateBG(MainFrame)
 			MainFrame:SetMovable(true)
