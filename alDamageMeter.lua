@@ -331,8 +331,10 @@ local Add = function(uGUID, amount, mode, spell, target)
 	total[uGUID][mode].amount = total[uGUID][mode].amount + amount
 	if spell then 
 		current[uGUID][mode].spells[spell] = (current[uGUID][mode].spells[spell] or 0) + amount
-		current[uGUID][mode].targets[target] = (current[uGUID][mode].targets[target] or 0) + amount
 		total[uGUID][mode].spells[spell] = (total[uGUID][mode].spells[spell] or 0) + amount
+	end
+	if target then 
+		current[uGUID][mode].targets[target] = (current[uGUID][mode].targets[target] or 0) + amount
 		total[uGUID][mode].targets[target] = (total[uGUID][mode].targets[target] or 0) + amount
 	end
 end
@@ -857,7 +859,7 @@ local OnEvent = function(self, event, ...)
 		elseif eventType=="SPELL_AURA_APPLIED" then
 			local spellId, spellName, spellSchool, auraType, amount = select(12, ...)
 			sourceGUID = owners[sourceGUID] or sourceGUID
-			if amount and AbsorbSpellDuration[spellId] and IsFriendlyUnit(sourceGUID) and IsFriendlyUnit(destGUID) then
+			if amount and IsFriendlyUnit(sourceGUID) and IsFriendlyUnit(destGUID) then
 				shields[destGUID] = shields[destGUID] or {}
 				shields[destGUID][spellName] = shields[destGUID][spellName] or {}
 				shields[destGUID][spellName][sourceGUID] = amount
@@ -865,7 +867,7 @@ local OnEvent = function(self, event, ...)
 		elseif eventType=="SPELL_AURA_REFRESH" then
 			local spellId, spellName, spellSchool, auraType, amount = select(12, ...)
 			sourceGUID = owners[sourceGUID] or sourceGUID
-			if amount and AbsorbSpellDuration[spellId] and IsFriendlyUnit(destGUID) then
+			if amount and IsFriendlyUnit(destGUID) then
 				if shields[destGUID] and shields[destGUID][spellName] and shields[destGUID][spellName][sourceGUID] then
 					local old = shields[destGUID][spellName][sourceGUID]
 					shields[destGUID][spellName][sourceGUID] = amount
@@ -877,7 +879,7 @@ local OnEvent = function(self, event, ...)
 		elseif eventType=="SPELL_AURA_REMOVED" then
 			local spellId, spellName, spellSchool, auraType, amount = select(12, ...)
 			sourceGUID = owners[sourceGUID] or sourceGUID
-			if amount and AbsorbSpellDuration[spellId] and IsFriendlyUnit(destGUID) then
+			if amount and IsFriendlyUnit(destGUID) then
 				if shields[destGUID] and shields[destGUID][spellName] and shields[destGUID][spellName][sourceGUID] then
 					local old = shields[destGUID][spellName][sourceGUID]
 					shields[destGUID][spellName][sourceGUID] = nil
