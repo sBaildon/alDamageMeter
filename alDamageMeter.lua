@@ -1,15 +1,15 @@
-local anchor = "TOPLEFT"
-local x, y = 12, -12
-local font = GameFontNormal:GetFont()
-local texture = "Interface\\Addons\\alDamageMeter\\media\\UI-StatusBar"
+local anchor = "BOTTOMRIGHT"
+local x, y = -20, 20
+local font = "Interface\\AddOns\\Kui_Media\\f\\francois.ttf"
+local texture = "Interface\\Addons\\Kui_Media\\t\\bar"
 
 local config = {
-	barheight = 14,
+	barheight = 19,
 	spacing = 1,
-	maxbars = 8,
-	width = 125,
-	maxfights = 10,
-	reportstrings = 10,
+	maxbars = 5,
+	width = 148,
+	maxfights = 15,
+	reportstrings = 5,
 	backdrop_color = {0, 0, 0, 0.5},
 	border_color = {0, 0, 0, 1},
 	border_size = 1,
@@ -251,7 +251,7 @@ local reportList = {
 }
 
 local OnBarEnter = function(self)
-	GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")
+	GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT")
 	GameTooltip:AddLine(self.left:GetText())
 	GameTooltip:AddLine(SPELL_DETAIL)
 	local a = {}
@@ -286,10 +286,10 @@ local CreateBar = function()
 	newbar:SetWidth(MainFrame:GetWidth())
 	newbar:SetHeight(config.barheight)
 	newbar.left = CreateFS(newbar)
-	newbar.left:SetPoint("LEFT", 2, 0)
+	newbar.left:SetPoint("LEFT", 5, -1)
 	newbar.left:SetJustifyH("LEFT")
 	newbar.right = CreateFS(newbar)
-	newbar.right:SetPoint("RIGHT", -2, 0)
+	newbar.right:SetPoint("RIGHT", -5, -1)
 	newbar.right:SetJustifyH("RIGHT")
 	newbar:SetScript("OnEnter", OnBarEnter)
 	newbar:SetScript("OnLeave", OnBarLeave)
