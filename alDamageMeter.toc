@@ -1,7 +1,7 @@
-## Interface: 60000
+## Interface: 60200
 ## Author: Allez
 ## Title: |cff777777al|rDamageMeter
-## Version: 60000.15
+## Version: 60000.25
 ## Notes: Damage meter
 ## OptionalDeps: alInterface
 ## SavedVariables: dmconf
