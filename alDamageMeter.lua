@@ -745,6 +745,7 @@ local OnEvent = function(self, event, ...)
 			end)
 			MainFrame:SetScript("OnMouseWheel", OnMouseWheel)
 			MainFrame:Show()
+			MainFrame:SetAlpha(0)
 			UIDropDownMenu_Initialize(menuFrame, CreateMenu, "MENU")
 			CheckRoster()
 		end
