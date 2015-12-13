@@ -763,7 +763,6 @@ local OnEvent = function(self, event, ...)
 		if not combatstarted then
 			StartCombat()
 		end
-		UpdateWindow()
 	elseif event == "UNIT_PET" then
 		local unit = ...
 		local pet = unit .. "pet"
