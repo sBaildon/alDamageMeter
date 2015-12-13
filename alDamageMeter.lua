@@ -342,20 +342,13 @@ local SortMethod = function(a, b)
 	return display[b][sMode].amount < display[a][sMode].amount
 end
 
-local BarsToShow = function()
-	local height = MainFrame:GetHeight()
-	local bars_to_show = height / ((config.barheight+config.spacing) - config.spacing)
-	return math.floor(bars_to_show)
-end
-
 local UpdateBars = function()
-	local necessarybars = BarsToShow()
 	table.sort(barguids, SortMethod)
 	local color, cur, max
 	for i = 1, #barguids do
 		cur = display[barguids[i+offset]]
 		max = display[barguids[1]]
-		if i > config.maxbars or i > necessarybars or not cur then break end
+		if i > config.maxbars or not cur then break end
 		if cur[sMode].amount == 0 then break end
 		if not bar[i] then
 			bar[i] = CreateBar()
@@ -386,8 +379,10 @@ end
 
 local UpdateWindow = function()
 	num_group_members = GetNumGroupMembers()
-	if (num_group_members >= config.maxbars) then
+	if (num_group_members >= config.maxbars or #barguids >= config.maxbars) then
 		MainFrame:SetSize(config.width, config.maxbars*(config.barheight+config.spacing)-config.spacing)
+	elseif (#barguids >= 1 and #barguids < config.maxbars) then
+		MainFrame:SetSize(config.width, #barguids*(config.barheight+config.spacing)-config.spacing)
 	elseif (num_group_members == 0) then
 		MainFrame:SetSize(config.width, config.barheight)
 	else
@@ -425,7 +420,7 @@ local ResetDisplay = function(fight)
 		tinsert(barguids, guid)
 	end
 	offset = 0
-	UpdateBars()
+	UpdateWindow()
 end
 
 local Clean = function()
@@ -768,6 +763,7 @@ local OnEvent = function(self, event, ...)
 		if not combatstarted then
 			StartCombat()
 		end
+		UpdateWindow()
 	elseif event == "UNIT_PET" then
 		local unit = ...
 		local pet = unit .. "pet"
